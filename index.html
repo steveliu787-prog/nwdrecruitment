@@ -4390,8 +4390,8 @@
           <button type="button" data-editor-lang="zh-HK">繁</button>
           <button type="button" data-editor-lang="en">EN</button>
         </div>
-        <button class="editor-action" id="saveLocalEdits" type="button">保存到浏览器</button>
-        <button class="editor-action primary" id="openGithubSync" type="button">同步到 GitHub</button>
+        <button class="editor-action" id="saveLocalEdits" type="button">仅保存本地</button>
+        <button class="editor-action primary" id="openGithubSync" type="button">保存并同步</button>
         <div class="editor-status" id="editorStatus" role="status" aria-live="polite"></div>
       </div>
       <div class="editor-body" id="editorBody">
@@ -4704,10 +4704,16 @@
 
   document.getElementById("saveLocalEdits").addEventListener("click", saveLocal);
   document.getElementById("openGithubSync").addEventListener("click", function () {
-    syncPanel.hidden = !syncPanel.hidden;
+    saveLocal();
     if (!syncToken.value) syncToken.value = window.sessionStorage.getItem(tokenSessionKey) || "";
+    if (syncToken.value) {
+      syncToGithub();
+      return;
+    }
+    syncPanel.hidden = false;
+    window.setTimeout(function () { syncToken.focus(); }, 0);
   });
-  document.getElementById("syncNow").addEventListener("click", syncToGithub);
+  document.getElementById("syncNow").addEventListener("click", function () { saveLocal(); syncToGithub(); });
 
   if (window.location.hash === "#editor") openEditor();
   window.addEventListener("hashchange", function () {
