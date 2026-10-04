@@ -15,8 +15,6 @@ let request;
 try {
   request = JSON.parse(candidate.slice(start, end + 1));
 } catch (error) {
-  console.error("DEBUG candidate", JSON.stringify(candidate));
-  console.error("DEBUG parse error", error.message);
   throw new Error("The issue payload is not valid JSON.");
 }
 
