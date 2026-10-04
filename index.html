@@ -3087,6 +3087,12 @@
     }
     .inline-upload-steps li + li { margin-top: 4px; }
     .inline-upload-steps strong { color: #3b0d14; }
+    .inline-upload-method {
+      margin: 13px 0 0;
+      color: #3b0d14;
+      font-size: 12px;
+      font-weight: 800;
+    }
     .inline-upload-warning {
       margin: 11px 0 0;
       padding: 9px 10px;
@@ -5011,18 +5017,29 @@
 
   <section class="inline-sync-panel" id="inlineUploadPanel" aria-labelledby="inlineUploadTitle" hidden>
     <h3 id="inlineUploadTitle">发布大图片更新</h3>
-    <p class="inline-sync-note">按顺序操作即可。下载动作只会在你点击下方按钮后开始，不会被自动触发。</p>
+    <p class="inline-sync-note">推荐使用下面的方法 B，不需要下载文件。下载或复制动作只会在你点击对应按钮后开始。</p>
     <div class="inline-upload-file">更新文件 <strong id="uploadFileName">edits-update.json</strong></div>
+    <p class="inline-upload-method">方法 A：下载后拖入 GitHub 上传页</p>
     <ol class="inline-upload-steps">
-      <li>点击 <strong>下载更新文件</strong>。Edge 右上角会出现下载图标，也可以按 <strong>Ctrl + J</strong> 查看。</li>
-      <li>文件通常会进入电脑的 <strong>Downloads</strong>（下载）文件夹。</li>
-      <li>点击 <strong>打开 GitHub 上传页</strong>，并确认页面右上角已登录 GitHub 账号。</li>
-      <li>把刚才的 JSON 文件拖入 GitHub 上传区域，再点击 <strong>Commit changes</strong>。</li>
+      <li>点击 <strong>下载更新文件</strong>，然后按 <strong>Ctrl + J</strong> 查看下载记录。</li>
+      <li>点击 <strong>打开 GitHub 上传页</strong>，把 JSON 文件拖入页面，再点击 <strong>Commit changes</strong>。</li>
     </ol>
-    <p class="inline-upload-warning">如果使用 Codex 内置预览标签页，下载可能被拦截。请改用桌面版 Chrome 或 Edge，在地址栏打开：https://steveliu787-prog.github.io/nwdrecruitment/</p>
     <div class="inline-sync-actions">
       <button class="primary" id="downloadUploadFile" type="button">下载更新文件</button>
       <button id="openGithubUploadPage" type="button">打开 GitHub 上传页</button>
+    </div>
+    <p class="inline-upload-method">方法 B：复制后粘贴到 GitHub 新建文件页</p>
+    <ol class="inline-upload-steps">
+      <li>点击 <strong>复制文件内容</strong>，网页会把全部更新内容复制到剪贴板。</li>
+      <li>点击 <strong>打开 GitHub 新建文件页</strong>，把光标放入代码编辑区。</li>
+      <li>按 <strong>Ctrl + V</strong> 粘贴内容，再点击页面下方的 <strong>Commit changes</strong>。</li>
+    </ol>
+    <div class="inline-sync-actions">
+      <button class="primary" id="copyUploadFile" type="button">复制文件内容</button>
+      <button id="openGithubCreateFile" type="button">打开 GitHub 新建文件页</button>
+    </div>
+    <p class="inline-upload-warning">如果下载被拦截，使用方法 B。请在桌面版 Edge 中打开线上网址，不要使用 Codex 内置预览标签页。</p>
+    <div class="inline-sync-actions">
       <button id="closeUploadPanel" type="button">取消</button>
     </div>
   </section>
@@ -5068,6 +5085,7 @@
   var pendingUploadUrl = "";
   var pendingUploadBlobUrl = "";
   var pendingUploadFileName = "";
+  var pendingUploadJson = "";
   var imageState = {
     image: null,
     rawSource: "",
@@ -5582,6 +5600,7 @@
   function showLargeUploadPanel(json, stamp) {
     if (pendingUploadBlobUrl) URL.revokeObjectURL(pendingUploadBlobUrl);
     pendingUploadFileName = "edits-update-" + stamp + ".json";
+    pendingUploadJson = json;
     pendingUploadUrl = "https://github.com/" + repoDefault + "/upload/main";
     pendingUploadBlobUrl = URL.createObjectURL(new Blob([json], { type: "application/json" }));
     document.getElementById("uploadFileName").textContent = pendingUploadFileName;
@@ -5589,6 +5608,40 @@
     uploadPanel.hidden = false;
     uploadPanel.classList.add("is-open");
     setStatus("请先点击“下载更新文件”，再打开 GitHub 上传页。", "ok");
+  }
+
+  function fallbackCopyPendingJson() {
+    var area = document.createElement("textarea");
+    area.value = pendingUploadJson;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.left = "-9999px";
+    document.body.appendChild(area);
+    area.focus();
+    area.select();
+    var copied = false;
+    try { copied = document.execCommand("copy"); } catch (error) {}
+    area.remove();
+    return copied;
+  }
+
+  function copyPendingJson() {
+    if (!pendingUploadJson) {
+      setStatus("没有待复制的更新内容。请重新点击“一键发布到 GitHub”。", "error");
+      return;
+    }
+    if (navigator.clipboard && window.isSecureContext && navigator.clipboard.writeText) {
+      setStatus("正在复制更新内容...", "ok");
+      navigator.clipboard.writeText(pendingUploadJson).then(function () {
+        setStatus("已复制。打开 GitHub 新建文件页后按 Ctrl + V 粘贴。", "ok");
+      }).catch(function () {
+        if (fallbackCopyPendingJson()) setStatus("已复制。打开 GitHub 新建文件页后按 Ctrl + V 粘贴。", "ok");
+        else setStatus("浏览器禁止自动复制。请使用方法 A，或在 GitHub 新建文件页中手动粘贴。", "error");
+      });
+      return;
+    }
+    if (fallbackCopyPendingJson()) setStatus("已复制。打开 GitHub 新建文件页后按 Ctrl + V 粘贴。", "ok");
+    else setStatus("浏览器禁止自动复制。请使用方法 A，或在 GitHub 新建文件页中手动粘贴。", "error");
   }
 
   function closeUploadPanel() {
@@ -5894,6 +5947,12 @@
     var opened = window.open(pendingUploadUrl, "_blank", "noopener,noreferrer");
     if (!opened) setStatus("浏览器拦截了新窗口。请点击 Edge 地址栏右侧的弹窗拦截图标并允许。", "error");
     else setStatus("已打开 GitHub 上传页。把刚下载的 JSON 文件拖入页面，然后点击 Commit changes。", "ok");
+  });
+  document.getElementById("copyUploadFile").addEventListener("click", copyPendingJson);
+  document.getElementById("openGithubCreateFile").addEventListener("click", function () {
+    var opened = window.open("https://github.com/" + repoDefault + "/new/main/" + remotePath, "_blank", "noopener,noreferrer");
+    if (!opened) setStatus("浏览器拦截了新窗口。请点击 Edge 地址栏右侧的弹窗拦截图标并允许。", "error");
+    else setStatus("已打开 GitHub 新建文件页。把光标放入代码编辑区，按 Ctrl + V 粘贴后提交。", "ok");
   });
   document.getElementById("closeUploadPanel").addEventListener("click", closeUploadPanel);
 
