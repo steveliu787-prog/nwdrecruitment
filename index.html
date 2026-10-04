@@ -5517,7 +5517,6 @@
     }
 
     var uploadUrl = "https://github.com/" + repoDefault + "/upload/main";
-    var uploadWindow = window.open(uploadUrl, "_blank", "noopener,noreferrer");
     var blob = new Blob([json], { type: "application/json" });
     var objectUrl = URL.createObjectURL(blob);
     var link = document.createElement("a");
@@ -5525,13 +5524,13 @@
     link.download = "edits-update-" + stamp + ".json";
     document.body.appendChild(link);
     link.click();
-    link.remove();
-    window.setTimeout(function () { URL.revokeObjectURL(objectUrl); }, 1000);
+    var uploadWindow = window.open(uploadUrl, "_blank", "noopener,noreferrer");
+    window.setTimeout(function () { link.remove(); URL.revokeObjectURL(objectUrl); }, 1000);
 
     if (uploadWindow) {
-      setStatus("已打开 GitHub 上传页：把刚下载的文件拖进去，再点击 Commit changes。", "ok");
+      setStatus("已下载 edits-update-" + stamp + ".json。请查看浏览器下载栏或“下载”文件夹，并把它拖入 GitHub 上传页后点击 Commit changes。", "ok");
     } else {
-      setStatus("更新文件已下载。请打开 " + uploadUrl + "，把文件拖入页面并点击 Commit changes。", "ok");
+      setStatus("更新文件已准备：edits-update-" + stamp + ".json。请检查浏览器下载栏或“下载”文件夹，再打开 " + uploadUrl + "。", "ok");
     }
   }
 
