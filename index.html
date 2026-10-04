@@ -4964,7 +4964,7 @@
         <textarea id="syncMessage">Update site content from inline editor</textarea>
       </label>
     </div>
-    <p class="inline-sync-note">网页会把本次内容修改写入仓库内的 edits.json，GitHub Pages 随后自动发布。Token 不会写入网页文件。</p>
+    <p class="inline-sync-note">网页会把本次内容修改写入仓库内的 edits.json，GitHub Pages 随后自动发布。Token 不会写入网页文件。如果无法连接 GitHub API，请改用电脑上的 Chrome 或 Edge，不要使用内置预览浏览器。</p>
     <div class="inline-sync-actions">
       <button class="primary" id="syncNow" type="button">开始同步</button>
       <button id="closeSyncPanel" type="button">取消</button>
@@ -5537,7 +5537,7 @@
     } catch (error) {
       var friendlyMessage = error.message || "同步失败";
       if (/Failed to fetch|NetworkError|Load failed/i.test(friendlyMessage)) {
-        friendlyMessage = "无法连接 GitHub API。请检查网络、关闭拦截扩展，并在线上网址操作。";
+        friendlyMessage = "当前浏览器未能连接 api.github.com。请用电脑上的 Chrome 或 Edge 打开同一网址，再重新同步；内置预览浏览器可能会拦截 GitHub API。";
       }
       setStatus(friendlyMessage, "error");
     }
