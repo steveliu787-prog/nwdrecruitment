@@ -2,7 +2,10 @@ import fs from "node:fs";
 import { applyChanges } from "./site-edit-core.mjs";
 
 const files = fs.readdirSync(".").filter((name) => /^edits-update-.*\.json$/.test(name));
-if (!files.length) throw new Error("No uploaded editor file was found.");
+if (!files.length) {
+  console.log("No uploaded editor file found; nothing to apply.");
+  process.exit(0);
+}
 
 let latest = null;
 for (const name of files) {
