@@ -35,4 +35,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-        run: gh issue close "$ISSUE_NUMBER" --reason completed
+        run: |
+          ISSUE_IDS="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'content-edit: in:title' --json number --jq '.[].number' | tr '\n' ' ')"
+          for ISSUE_ID in $ISSUE_IDS; do gh issue close "$ISSUE_ID" --reason completed; done
