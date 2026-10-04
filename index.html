@@ -4885,7 +4885,7 @@
           <button type="button" data-editor-lang="en">EN</button>
         </div>
         <button class="inline-tool-button" id="saveLocalEdits" type="button">保存到浏览器</button>
-        <button class="inline-tool-button primary" id="openGithubSync" type="button">同步到 GitHub</button>
+        <button class="inline-tool-button primary" id="openGithubSync" type="button">一键发布到 GitHub</button>
         <button class="inline-tool-button quiet" id="closeInlineEditor" type="button">完成</button>
         <div class="inline-editor-status" id="editorStatus" role="status" aria-live="polite"></div>
       </div>
@@ -5457,6 +5457,84 @@
     if (editorStatus.dataset.state !== "error") setStatus("内容已保存到当前浏览器。", "ok");
   }
 
+  function publishStamp() {
+    var now = new Date();
+    return now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  }
+
+  function unsyncedEdits() {
+    var local = readLocalEdits();
+    var result = {};
+    supportedLangs.forEach(function (lang) {
+      var remote = remoteEdits[lang] || {};
+      var changes = local[lang] || {};
+      var diff = {};
+      Object.keys(changes).forEach(function (key) {
+        if (remote[key] !== changes[key]) diff[key] = changes[key];
+      });
+      if (Object.keys(diff).length) result[lang] = diff;
+    });
+    return result;
+  }
+
+  function easyPublishPayload() {
+    return {
+      schema: 1,
+      source: "inline-editor",
+      updatedAt: new Date().toISOString(),
+      changes: unsyncedEdits()
+    };
+  }
+
+  function openEasyPublish() {
+    if (activeTextRecord) commitTextEditing(true);
+    writeLocalEdits();
+    applyEdits();
+
+    if (/^file:$/.test(window.location.protocol)) {
+      setStatus("请先打开线上网址：https://steveliu787-prog.github.io/nwdrecruitment/", "error");
+      return;
+    }
+
+    var payload = easyPublishPayload();
+    var json = JSON.stringify(payload, null, 2);
+    var stamp = publishStamp();
+    var title = "content-edit:" + stamp;
+    var issueBody = "<!--website-edit-payload-->\n" + json;
+    var issueUrl = "https://github.com/" + repoDefault + "/issues/new" +
+      "?title=" + encodeURIComponent(title) +
+      "&body=" + encodeURIComponent(issueBody);
+    var encodedSize = encodeURIComponent(title).length + encodeURIComponent(issueBody).length;
+
+    if (encodedSize <= 6500) {
+      var issueWindow = window.open(issueUrl, "_blank", "noopener,noreferrer");
+      if (!issueWindow) {
+        setStatus("浏览器拦截了新窗口。请允许弹窗后重试。", "error");
+        return;
+      }
+      setStatus("GitHub 已打开并自动填好内容：确认登录后点击 Submit new issue。", "ok");
+      return;
+    }
+
+    var uploadUrl = "https://github.com/" + repoDefault + "/upload/main";
+    var uploadWindow = window.open(uploadUrl, "_blank", "noopener,noreferrer");
+    var blob = new Blob([json], { type: "application/json" });
+    var objectUrl = URL.createObjectURL(blob);
+    var link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = "edits-update-" + stamp + ".json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(function () { URL.revokeObjectURL(objectUrl); }, 1000);
+
+    if (uploadWindow) {
+      setStatus("已打开 GitHub 上传页：把刚下载的文件拖进去，再点击 Commit changes。", "ok");
+    } else {
+      setStatus("更新文件已下载。请打开 " + uploadUrl + "，把文件拖入页面并点击 Commit changes。", "ok");
+    }
+  }
+
   function openSyncPanel() {
     if (activeTextRecord) commitTextEditing(true);
     if (!syncToken.value) syncToken.value = window.sessionStorage.getItem(tokenSessionKey) || "";
@@ -5695,17 +5773,7 @@
 
   document.getElementById("saveLocalEdits").addEventListener("click", saveLocal);
   document.getElementById("openGithubSync").addEventListener("click", function () {
-    saveLocal();
-    if (/^file:$/.test(window.location.protocol)) {
-      setStatus("请在线上网址打开网站后再同步：https://steveliu787-prog.github.io/nwdrecruitment/", "error");
-      return;
-    }
-    if (syncToken.value || window.sessionStorage.getItem(tokenSessionKey)) {
-      syncToken.value = syncToken.value || window.sessionStorage.getItem(tokenSessionKey) || "";
-      syncToGithub();
-    } else {
-      openSyncPanel();
-    }
+    openEasyPublish();
   });
   document.getElementById("closeInlineEditor").addEventListener("click", closeEditor);
   document.getElementById("commitInlineText").addEventListener("click", function () { commitTextEditing(true); });

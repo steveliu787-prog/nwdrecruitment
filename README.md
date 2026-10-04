@@ -22,16 +22,19 @@ The normal page layout stays visible. While editing is enabled, click any outlin
 
 When opening `index.html` directly with `file://`, browser security blocks cropping an image that is already loaded from disk. Select that image again with **从电脑选择图片** to crop it, or open the GitHub Pages URL where the same-origin images crop directly.
 
-## Sync edits to GitHub
+## Publish edits to GitHub
 
 1. Edit text or images in place.
 2. Select **保存到浏览器** to preview and save locally.
-3. Select **同步到 GitHub** and enter a GitHub personal access token.
+3. Select **一键发布到 GitHub**.
 
-The token is stored only in the current browser session and is not written to the site or repository. The page updates `edits.json` through the GitHub Contents API, and GitHub Pages publishes the changes automatically.
+The page does not require a personal access token and does not call the GitHub API from the browser.
 
-The token needs permission to read and write repository contents. For a classic token, use `repo` or `public_repo`. For a fine-grained token, grant **Contents: Read and write** on this repository.
+- For normal text or online image changes, GitHub opens a pre-filled issue. Confirm the account and select **Submit new issue**. A repository workflow applies the change and closes the issue automatically.
+- For large local-image changes, the page downloads an `edits-update-...json` file and opens the GitHub upload page. Drag the downloaded file into that page and select **Commit changes**. A repository workflow merges the file into `edits.json` automatically.
+
+GitHub Pages publishes the merged changes automatically.
 
 ## Local preview
 
-Open `index.html` directly in a browser. GitHub synchronisation is disabled for local file previews; browser-only edits still work.
+Open `index.html` directly in a browser. Browser-only edits still work.
