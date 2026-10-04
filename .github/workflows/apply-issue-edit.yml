@@ -23,7 +23,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Apply editor payload
-        run: node .github/scripts/apply-issue-edit.mjs
+        run: |
+          ISSUE_BODY_DECODED="$(printf '%s' "$ISSUE_BODY" | jq -r .)"
+          ISSUE_BODY="$ISSUE_BODY_DECODED" node .github/scripts/apply-issue-edit.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_BODY: ${{ toJson(github.event.issue.body) }}
