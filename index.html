@@ -5485,6 +5485,12 @@
       return;
     }
 
+    if (/^file:$/.test(window.location.protocol)) {
+      setStatus("本地 file:// 预览不能直接同步。请打开线上网址：https://steveliu787-prog.github.io/nwdrecruitment/", "error");
+      closeSyncPanel();
+      return;
+    }
+
     setStatus("正在连接 GitHub...");
     window.sessionStorage.setItem(tokenSessionKey, token);
     var headers = {
@@ -5529,7 +5535,11 @@
       writeLocalEdits();
       closeSyncPanel();
     } catch (error) {
-      setStatus(error.message || "同步失败", "error");
+      var friendlyMessage = error.message || "同步失败";
+      if (/Failed to fetch|NetworkError|Load failed/i.test(friendlyMessage)) {
+        friendlyMessage = "无法连接 GitHub API。请检查网络、关闭拦截扩展，并在线上网址操作。";
+      }
+      setStatus(friendlyMessage, "error");
     }
   }
 
@@ -5545,7 +5555,8 @@
       });
       applyEdits();
     } catch (error) {
-      setStatus("已打开本地预览，远程编辑暂未加载。", "error");
+      var loadMessage = error && /Failed to fetch|NetworkError|Load failed/i.test(error.message || "") ? "无法加载线上 edits.json。请检查网络后刷新页面。" : "远程编辑暂未加载。";
+      setStatus(loadMessage, "error");
     }
   }
 
@@ -5685,6 +5696,10 @@
   document.getElementById("saveLocalEdits").addEventListener("click", saveLocal);
   document.getElementById("openGithubSync").addEventListener("click", function () {
     saveLocal();
+    if (/^file:$/.test(window.location.protocol)) {
+      setStatus("请在线上网址打开网站后再同步：https://steveliu787-prog.github.io/nwdrecruitment/", "error");
+      return;
+    }
     if (syncToken.value || window.sessionStorage.getItem(tokenSessionKey)) {
       syncToken.value = syncToken.value || window.sessionStorage.getItem(tokenSessionKey) || "";
       syncToGithub();
