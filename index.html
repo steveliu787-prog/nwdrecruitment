@@ -865,44 +865,12 @@
 
     .growth-layout {
       display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 54px;
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 920px;
+      margin: 0 auto;
       align-items: start;
     }
 
-    .growth-side {
-      position: sticky;
-      top: calc(var(--header-height) + 32px);
-    }
-
-    .growth-side .program-tag {
-      display: inline-block;
-      padding: 7px 11px;
-      border: 1px solid var(--brand-200);
-      border-radius: 999px;
-      background: var(--brand-50);
-      color: var(--brand-700);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .growth-side h3 {
-      margin: 18px 0 12px;
-      color: var(--ink);
-      font-size: 27px;
-      line-height: 1.35;
-    }
-
-    .growth-side p {
-      margin: 0;
-      color: var(--slate);
-      font-size: 15px;
-      line-height: 1.8;
-    }
-
-    .growth-side .btn {
-      margin-top: 24px;
-    }
 
     .timeline {
       display: grid;
@@ -3394,7 +3362,7 @@
               <span class="stat-label">核心员工福利</span>
       <section class="section" id="growth" aria-labelledby="growthTitle">
         <div class="container-wide">
-          <div class="section-head split">
+          <div class="section-head center">
             <div class="section-copy">
               <p class="eyebrow">Growth Programmes</p>
               <h2 id="growthTitle">人才发展项目</h2>
@@ -3403,16 +3371,6 @@
           </div>
 
           <div class="growth-layout">
-            <aside class="growth-side">
-              <span class="program-tag">Career Pathways</span>
-              <h3>系统化的<br>职业发展路径。</h3>
-              <p>三个计划覆盖在校学生、应届毕业生及在职员工，帮助不同阶段的人才获得实战历练、专业支持与长期成长空间。</p>
-              <a class="btn btn-outline" href="#jobs" data-route="jobs">
-                查看开放岗位
-                <svg class="icon" style="width:16px;height:16px" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
-              </a>
-            </aside>
-
             <div class="timeline">
               <article class="timeline-item">
                 <span class="timeline-marker">01</span>
